@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ambil Kode dari Gambar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.1/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f7f7f7 100%);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background: #fff;
+            margin: 40px auto;
+            padding: 32px 24px 40px 24px;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(44, 62, 80, 0.12);
+            max-width: 480px;
+        }
+        h1 {
+            color: #2563eb;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        #userInput {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #b6c3d1;
+            font-size: 16px;
+            margin-bottom: 12px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .mode-group {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+        .mode-group label {
+            font-size: 15px;
+            color: #2563eb;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        video, canvas, img {
+            display: block;
+            margin: 0 auto 12px auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.06);
+            max-width: 100%;
+        }
+        button, label[for="fileInput"] {
+            background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px 8px 0 0;
+            transition: background 0.2s;
+            display: inline-block;
+        }
+        button:active, label[for="fileInput"]:active {
+            background: linear-gradient(90deg, #1e40af 60%, #2563eb 100%);
+        }
+        #fileInput {
+            display: none;
+        }
+        #result {
+            margin-top: 18px;
+            font-size: 18px;
+            color: #222;
+            min-height: 32px;
+        }
+        #ocrText {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 10px;
+            word-break: break-all;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px 2vw; }
+            h1 { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Deteksi Kode Batch Obat-2</h1>
+        <input type="text" id="userInput" placeholder="Nama Pengirim (opsional)">
+        <div class="mode-group">
+            <label><input type="radio" name="mode" value="barcode" checked> Barcode</label>
+            <label><input type="radio" name="mode" value="qr"> QR Code</label>
+            <label><input type="radio" name="mode" value="ocr"> Teks (OCR)</label>
+        </div>
+        <video id="video" width="640" height="480" autoplay></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <img id="imgPreview" style="display:none;max-width:640px;max-height:480px;" />
+        <div>
+            <button id="capture">Ambil Gambar dari Kamera</button>
+            <label for="fileInput">Upload Gambar</label>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+        <div id="result"></div>
+        <div id="ocrText"></div>
+    </div>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('capture');
+        const resultDiv = document.getElementById('result');
+        const fileInput = document.getElementById('fileInput');
+        const imgPreview = document.getElementById('imgPreview');
+        const userInput = document.getElementById('userInput');
+        const ocrTextDiv = document.getElementById('ocrText');
+        const modeRadios = document.getElementsByName('mode');
+
+        function getMode() {
+            for (let radio of modeRadios) {
+                if (radio.checked) return radio.value;
+            }
+            return "barcode";
+        }
+
+        // Minta akses ke kamera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                });
+            })
+            .catch(err => {
+                console.error('Error mengakses kamera:', err);
+                resultDiv.textContent = 'Gagal mengakses kamera.';
+            });
+
+        // Handler tombol ambil gambar dari kamera
+        captureButton.addEventListener('click', () => {
+            imgPreview.style.display = "none";
+            video.style.display = "block";
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            resultDiv.textContent = 'Memproses gambar...';
+            ocrTextDiv.textContent = '';
+
+            const mode = getMode();
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+            if (mode === "qr") {
+                const qr = jsQR(imageData.data, imageData.width, imageData.height);
+                if (qr && qr.data) {
+                    tampilkanHasilBatch(qr.data, "QR Code");
+                } else {
+                    resultDiv.innerHTML = '<span style="color:#e11d48;">QR Code tidak ditemukan.</span>';
+                }
+            } else if (mode === "barcode") {
+                // Convert canvas ke dataURL
+                const dataUrl = canvas.toDataURL("image/png");
+                detectBarcodeFromImageData(dataUrl, canvas.width, canvas.height, function(barcode) {
+                    if (barcode) {
+                        tampilkanHasilBatch(barcode, "Barcode");
+                    } else {
+                        resultDiv.innerHTML = '<span style="color:#e11d48;">Barcode tidak ditemukan.</span>';
+                    }
+                });
+            } else {
+                Tesseract.recognize(
+                    canvas,
+                    'eng',
+                    { logger: m => console.log(m) }
+                ).then(({ data: { text } }) => {
+                    handleOCRResult(text);
+                }).catch(error => {
+                    console.error('Error OCR:', error);
+                    resultDiv.textContent = 'Error memproses gambar.';
+                });
+            }
+        });
+
+        // Handler upload file gambar
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imgPreview.src = e.target.result;
+                    imgPreview.style.display = "block";
+                    video.style.display = "none";
+                    resultDiv.textContent = 'Memproses gambar...';
+                    ocrTextDiv.textContent = '';
+
+                    const img = new window.Image();
+                    img.onload = function() {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, img.width, img.height);
+
+                        const mode = getMode();
+                        const imageData = ctx.getImageData(0, 0, img.width, img.height);
+
+                        if (mode === "qr") {
+                            const qr = jsQR(imageData.data, imageData.width, imageData.height);
+                            if (qr && qr.data) {
+                                tampilkanHasilBatch(qr.data, "QR Code");
+                            } else {
+                                resultDiv.innerHTML = '<span style="color:#e11d48;">QR Code tidak ditemukan.</span>';
+                            }
+                        } else if (mode === "barcode") {
+                            const dataUrl = canvas.toDataURL("image/png");
+                            detectBarcodeFromImageData(dataUrl, canvas.width, canvas.height, function(barcode) {
+                                if (barcode) {
+                                    tampilkanHasilBatch(barcode, "Barcode");
+                                } else {
+                                    resultDiv.innerHTML = '<span style="color:#e11d48;">Barcode tidak ditemukan.</span>';
+                                }
+                            });
+                        } else {
+                            Tesseract.recognize(
+                                e.target.result,
+                                'eng',
+                                { logger: m => console.log(m) }
+                            ).then(({ data: { text } }) => {
+                                handleOCRResult(text);
+                            }).catch(error => {
+                                console.error('Error OCR:', error);
+                                resultDiv.textContent = 'Error memproses gambar.';
+                            });
+                        }
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        });
+
+        // Fungsi untuk proses hasil OCR
+        function handleOCRResult(text) {
+            ocrTextDiv.textContent = "Hasil OCR:\n" + text;
+            console.log('Teks yang diekstrak:', text);
+
+            // Split per baris dan normalisasi
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            let codeFound = false;
+
+            // Regex batch di baris yang sama (lebih fleksibel)
+            const regexSameLine = /(batch\s*(no|number)?[\s\.:;\-]*)+([A-Za-z0-9\-]{3,})/i;
+            // Regex hanya cari baris batch (tanpa kode)
+            const regexBatchOnly = /(batch\s*(no|number)?[\s\.:;\-]*)$/i;
+            // Regex baris yang kemungkinan hanya kode (minimal 3 karakter, huruf/angka/dash)
+            const regexCodeOnly = /^([A-Za-z0-9\-]{3,})$/;
+
+            for (let i = 0; i < lines.length; i++) {
+                // 1. Cek batch dan kode di baris yang sama
+                let match = lines[i].match(regexSameLine);
+                if (match && match[3]) {
+                    const code = match[3].trim();
+                    tampilkanHasilBatch(code, "OCR");
+                    codeFound = true;
+                    break;
+                }
+                // 2. Jika baris hanya "batch" (atau batch no/number), cek baris berikutnya sebagai kode
+                if (regexBatchOnly.test(lines[i]) && i + 1 < lines.length) {
+                    let nextLine = lines[i + 1].trim();
+                    let codeMatch = nextLine.match(regexCodeOnly);
+                    if (codeMatch && codeMatch[1]) {
+                        const code = codeMatch[1].trim();
+                        tampilkanHasilBatch(code, "OCR");
+                        codeFound = true;
+                        break;
+                    }
+                }
+            }
+            if (!codeFound) {
+                resultDiv.innerHTML = '<span style="color:#e11d48;">Kode tidak ditemukan. Coba lagi.</span>';
+            }
+        }
+
+        // Fungsi menampilkan hasil dan kirim ke server
+        function tampilkanHasilBatch(code, sumber) {
+            resultDiv.innerHTML = `<span style="color:#2563eb;font-weight:600;">Kode terdeteksi (${sumber}): ${code}</span>`;
+            fetch('http://127.0.0.1:3000/save-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code, user: userInput.value })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    resultDiv.innerHTML += '<br><span style="color:green;">' + data.message + '</span>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultDiv.innerHTML += '<br><span style="color:red;">Gagal mengirim kode ke server.</span>';
+            });
+        }
+
+        // Fungsi deteksi barcode 1D (QuaggaJS)
+        function detectBarcodeFromImageData(imageData, width, height, callback) {
+            Quagga.decodeSingle({
+                src: imageData,
+                inputStream: {
+                    size: width,
+                    singleChannel: false
+                },
+                locator: { patchSize: "medium", halfSample: false },
+                decoder: { readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader", "upc_e_reader"] },
+                locate: true,
+                numOfWorkers: 0
+            }, function(result) {
+                if(result && result.codeResult && result.codeResult.code){
+                    callback(result.codeResult.code);
+                } else {
+                    callback(null);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
