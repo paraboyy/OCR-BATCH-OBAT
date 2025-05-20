@@ -290,7 +290,7 @@
         // Fungsi menampilkan hasil dan kirim ke server
         function tampilkanHasilBatch(code, sumber) {
             resultDiv.innerHTML = `<span style="color:#2563eb;font-weight:600;">Kode terdeteksi (${sumber}): ${code}</span>`;
-            fetch('http://127.0.0.1:3000/save-code', {
+            fetch('https://ocr-web-2-485701353107.asia-southeast2.run.app/save-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code: code, user: userInput.value })
