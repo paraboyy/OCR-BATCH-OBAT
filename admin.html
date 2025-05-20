@@ -282,7 +282,7 @@
 
       window.deleteCode = function(id) {
         if (confirm("Yakin ingin menghapus data ini?")) {
-          fetch(`http://127.0.0.1:3000/admin-codes/${id}`, {
+          fetch(`https://ocr-web-2-485701353107.asia-southeast2.run.app/admin-codes/${id}`, {
             method: "DELETE",
             credentials: "include"
           })
