@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Admin - Data Kode Obat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       body {
         font-family: "Segoe UI", Arial, sans-serif;
-        background: linear-gradient(135deg, #e0e7ff 0%, #f7f7f7 100%);
+        background: #f3f4f6;
         margin: 0;
         padding: 0;
       }
@@ -16,152 +16,117 @@
         padding: 32px 24px 40px 24px;
         border-radius: 18px;
         box-shadow: 0 8px 32px rgba(44, 62, 80, 0.12);
-        max-width: 600px;
+        max-width: 700px;
       }
       h2 {
         color: #2563eb;
-        margin-bottom: 24px;
+        margin-bottom: 18px;
         letter-spacing: 1px;
-      }
-      #loginForm {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        margin-bottom: 30px;
-      }
-      #loginForm input {
-        padding: 12px;
-        border: 1px solid #b6c3d1;
-        border-radius: 8px;
-        font-size: 16px;
-        outline: none;
-        transition: border 0.2s;
-      }
-      #loginForm input:focus {
-        border: 1.5px solid #2563eb;
-      }
-      #loginForm button, #logoutBtn {
-        background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
-        color: #fff;
-        border: none;
-        padding: 12px;
-        border-radius: 8px;
-        font-size: 17px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s;
-        box-shadow: 0 2px 8px rgba(44, 62, 80, 0.06);
-        margin-top: 8px;
-      }
-      #loginForm button:hover, #logoutBtn:hover {
-        background: linear-gradient(90deg, #1e40af 60%, #2563eb 100%);
-      }
-      #errorMsg {
-        color: #e11d48;
-        margin-top: -10px;
-        font-size: 15px;
-        min-height: 20px;
-      }
-      #dataSection {
-        margin-top: 10px;
       }
       .filter-group {
         display: flex;
-        gap: 8px;
-        margin-bottom: 12px;
+        gap: 10px;
+        margin-bottom: 18px;
         flex-wrap: wrap;
       }
-      .filter-group input {
-        padding: 7px 10px;
+      .filter-group input,
+      .filter-group button {
+        padding: 8px 12px;
         border-radius: 6px;
         border: 1px solid #b6c3d1;
         font-size: 15px;
       }
+      .filter-group button {
+        background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .filter-group button:active {
+        background: linear-gradient(90deg, #1e40af 60%, #2563eb 100%);
+      }
       table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 18px;
-        background: #f9fafb;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(44, 62, 80, 0.04);
+        margin-bottom: 18px;
       }
-      th, td {
-        padding: 12px 8px;
-        text-align: center;
+      th,
+      td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
       }
       th {
-        background: #2563eb;
-        color: #fff;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-      }
-      tr:nth-child(even) {
-        background: #e0e7ff;
+        background: #f1f5f9;
+        color: #2563eb;
+        font-weight: 700;
       }
       tr:hover {
-        background: #dbeafe;
-        transition: background 0.2s;
+        background: #f3f4f6;
       }
       .delete-btn {
         background: #e11d48;
         color: #fff;
         border: none;
-        padding: 6px 14px;
         border-radius: 6px;
-        cursor: pointer;
+        padding: 6px 16px;
         font-size: 14px;
+        cursor: pointer;
         font-weight: 600;
         transition: background 0.2s;
       }
-      .delete-btn:hover {
+      .delete-btn:active {
         background: #be123c;
       }
-      #logoutBtn {
-        float: right;
-        margin-top: -40px;
-        margin-bottom: 10px;
-      }
       .pagination {
-        margin-top: 18px;
-        text-align: center;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        align-items: center;
       }
       .pagination button {
-        margin: 0 4px;
-        padding: 7px 14px;
+        padding: 6px 14px;
         border-radius: 6px;
-        border: none;
-        background: #2563eb;
-        color: #fff;
-        font-size: 15px;
+        border: 1px solid #b6c3d1;
+        background: #fff;
+        color: #2563eb;
+        font-weight: 600;
         cursor: pointer;
         transition: background 0.2s;
       }
-      .pagination button.active, .pagination button:hover {
-        background: #1e40af;
+      .pagination button.active,
+      .pagination button:disabled {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        cursor: default;
       }
       @media (max-width: 700px) {
-        .container { padding: 12px 2vw; }
-        table, th, td { font-size: 14px; }
-        #logoutBtn { float: none; margin: 10px 0 10px 0; }
+        .container {
+          padding: 12px 2vw;
+        }
+        table,
+        th,
+        td {
+          font-size: 13px;
+        }
+        .filter-group {
+          flex-direction: column;
+          gap: 8px;
+        }
       }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
       <h2>Admin Data Kode Obat</h2>
-      <form id="loginForm">
-        <input type="text" id="username" placeholder="Username" required autocomplete="username" />
-        <input type="password" id="password" placeholder="Password" required autocomplete="current-password" />
-        <button type="submit">Login</button>
-        <div id="errorMsg"></div>
-      </form>
-      <div id="dataSection" style="display: none">
-        <button id="logoutBtn">Logout</button>
+      <div id="dataSection">
         <div class="filter-group">
-          <input type="text" id="searchInput" placeholder="Cari kode...">
-          <input type="date" id="startDate">
-          <input type="date" id="endDate">
+          <input type="text" id="searchInput" placeholder="Cari kode..." />
+          <input type="date" id="startDate" />
+          <input type="date" id="endDate" />
           <button id="filterBtn" type="button">Filter</button>
         </div>
         <table>
@@ -180,11 +145,10 @@
       </div>
     </div>
     <script>
-      const loginForm = document.getElementById("loginForm");
+      const BACKEND_URL = "http://127.0.0.1:3000";
+
       const dataSection = document.getElementById("dataSection");
       const dataTable = document.getElementById("dataTable");
-      const errorMsg = document.getElementById("errorMsg");
-      const logoutBtn = document.getElementById("logoutBtn");
       const searchInput = document.getElementById("searchInput");
       const startDate = document.getElementById("startDate");
       const endDate = document.getElementById("endDate");
@@ -192,44 +156,9 @@
       const paginationDiv = document.getElementById("pagination");
 
       let currentPage = 1;
-      let lastSearch = '';
-      let lastStartDate = '';
-      let lastEndDate = '';
-
-      loginForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        errorMsg.textContent = "";
-        fetch("http://127.0.0.1:3000/admin-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            username: document.getElementById("username").value,
-            password: document.getElementById("password").value,
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              loginForm.style.display = "none";
-              dataSection.style.display = "block";
-              fetchCodes();
-            } else {
-              errorMsg.textContent = data.message || "Login gagal";
-            }
-          })
-          .catch(() => (errorMsg.textContent = "Login gagal"));
-      });
-
-      logoutBtn.addEventListener("click", function () {
-        fetch("http://127.0.0.1:3000/admin-logout", {
-          method: "POST",
-          credentials: "include"
-        }).then(() => {
-          dataSection.style.display = "none";
-          loginForm.style.display = "flex";
-        });
-      });
+      let lastSearch = "";
+      let lastStartDate = "";
+      let lastEndDate = "";
 
       filterBtn.addEventListener("click", function () {
         currentPage = 1;
@@ -243,55 +172,48 @@
         lastSearch = search;
         lastStartDate = start;
         lastEndDate = end;
-        fetch(`http://127.0.0.1:3000/admin-codes?search=${encodeURIComponent(search)}&page=${page}&limit=10&startDate=${start}&endDate=${end}`, {
-          credentials: "include"
-        })
-          .then((res) => {
-            if (res.status === 401) {
-              dataSection.style.display = "none";
-              loginForm.style.display = "flex";
-              return [];
-            }
-            return res.json();
-          })
+        fetch(`${BACKEND_URL}/admin-codes?search=${encodeURIComponent(search)}&page=${page}&limit=10&startDate=${start}&endDate=${end}`)
+          .then((res) => res.json())
           .then((data) => {
             dataTable.innerHTML = "";
             data.forEach((row) => {
               dataTable.innerHTML += `<tr>
                 <td>${row.id}</td>
                 <td>${row.code}</td>
-                <td>${row.user || '-'}</td>
-                <td>${row.created_at ? new Date(row.created_at).toLocaleString() : '-'}</td>
+                <td>${row.user || "-"}</td>
+                <td>${row.created_at ? new Date(row.created_at).toLocaleString() : "-"}</td>
                 <td><button class="delete-btn" onclick="deleteCode(${row.id})">Hapus</button></td>
               </tr>`;
             });
             // Pagination (simple, next/prev)
             paginationDiv.innerHTML = `
-              <button ${page <= 1 ? 'disabled' : ''} onclick="changePage(${page-1})">Prev</button>
+              <button ${page <= 1 ? "disabled" : ""} onclick="changePage(${page - 1})">Prev</button>
               <button class="active">${page}</button>
-              <button onclick="changePage(${page+1})">Next</button>
+              <button onclick="changePage(${page + 1})">Next</button>
             `;
             currentPage = page;
           });
       }
 
-      window.changePage = function(page) {
+      window.changePage = function (page) {
         if (page < 1) return;
         fetchCodes(page);
-      }
+      };
 
-      window.deleteCode = function(id) {
+      window.deleteCode = function (id) {
         if (confirm("Yakin ingin menghapus data ini?")) {
-          fetch(`http://127.0.0.1:3000/admin-codes/${id}`, {
+          fetch(`${BACKEND_URL}/admin-codes/${id}`, {
             method: "DELETE",
-            credentials: "include"
           })
-            .then(res => res.json())
-            .then(data => {
+            .then((res) => res.json())
+            .then((data) => {
               fetchCodes(currentPage);
             });
         }
-      }
+      };
+
+      // Langsung tampilkan data saat halaman dibuka
+      fetchCodes();
     </script>
-</body>
+  </body>
 </html>
