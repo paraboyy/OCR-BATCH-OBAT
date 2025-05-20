@@ -199,7 +199,7 @@
       loginForm.addEventListener("submit", function (e) {
         e.preventDefault();
         errorMsg.textContent = "";
-        fetch("http://127.0.0.1:3000/admin-login", {
+        fetch("https://ocr-web-2-485701353107.asia-southeast2.run.app/admin-login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -222,7 +222,7 @@
       });
 
       logoutBtn.addEventListener("click", function () {
-        fetch("http://127.0.0.1:3000/admin-logout", {
+        fetch("https://ocr-web-2-485701353107.asia-southeast2.run.app/admin-logout", {
           method: "POST",
           credentials: "include"
         }).then(() => {
