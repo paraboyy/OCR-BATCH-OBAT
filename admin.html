@@ -243,7 +243,7 @@
         lastSearch = search;
         lastStartDate = start;
         lastEndDate = end;
-        fetch(`http://127.0.0.1:3000/admin-codes?search=${encodeURIComponent(search)}&page=${page}&limit=10&startDate=${start}&endDate=${end}`, {
+        fetch(`https://ocr-web-2-485701353107.asia-southeast2.run.app/admin-codes?search=${encodeURIComponent(search)}&page=${page}&limit=10&startDate=${start}&endDate=${end}`, {
           credentials: "include"
         })
           .then((res) => {
